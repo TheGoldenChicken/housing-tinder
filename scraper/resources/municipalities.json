@@ -1,0 +1,497 @@
+{
+"101": {
+"name": "København",
+"region": 1084,
+"slug": "koebenhavn"
+},
+"147": {
+"name": "Frederiksberg",
+"region": 1084,
+"slug": "frederiksberg"
+},
+"151": {
+"name": "Ballerup",
+"region": 1084,
+"slug": "ballerup"
+},
+"153": {
+"name": "Brøndby",
+"region": 1084,
+"slug": "broendby"
+},
+"155": {
+"name": "Dragør",
+"region": 1084,
+"slug": "dragoer"
+},
+"157": {
+"name": "Gentofte",
+"region": 1084,
+"slug": "gentofte"
+},
+"159": {
+"name": "Gladsaxe",
+"region": 1084,
+"slug": "gladsaxe"
+},
+"161": {
+"name": "Glostrup",
+"region": 1084,
+"slug": "glostrup"
+},
+"163": {
+"name": "Herlev",
+"region": 1084,
+"slug": "herlev"
+},
+"165": {
+"name": "Albertslund",
+"region": 1084,
+"slug": "albertslund"
+},
+"167": {
+"name": "Hvidovre",
+"region": 1084,
+"slug": "hvidovre"
+},
+"169": {
+"name": "Høje-Taastrup",
+"region": 1084,
+"slug": "hoeje-taastrup"
+},
+"173": {
+"name": "Lyngby-Taarbæk",
+"region": 1084,
+"slug": "lyngby-taarbaek"
+},
+"175": {
+"name": "Rødovre",
+"region": 1084,
+"slug": "roedovre"
+},
+"183": {
+"name": "Ishøj",
+"region": 1084,
+"slug": "ishoej"
+},
+"185": {
+"name": "Tårnby",
+"region": 1084,
+"slug": "taarnby"
+},
+"187": {
+"name": "Vallensbæk",
+"region": 1084,
+"slug": "vallensbaek"
+},
+"190": {
+"name": "Furesø",
+"region": 1084,
+"slug": "furesoe"
+},
+"201": {
+"name": "Allerød",
+"region": 1084,
+"slug": "alleroed"
+},
+"210": {
+"name": "Fredensborg",
+"region": 1084,
+"slug": "fredensborg"
+},
+"217": {
+"name": "Helsingør",
+"region": 1084,
+"slug": "helsingoer"
+},
+"219": {
+"name": "Hillerød",
+"region": 1084,
+"slug": "hilleroed"
+},
+"223": {
+"name": "Hørsholm",
+"region": 1084,
+"slug": "hoersholm"
+},
+"230": {
+"name": "Rudersdal",
+"region": 1084,
+"slug": "rudersdal"
+},
+"240": {
+"name": "Egedal",
+"region": 1084,
+"slug": "egedal"
+},
+"250": {
+"name": "Frederikssund",
+"region": 1084,
+"slug": "frederikssund"
+},
+"253": {
+"name": "Greve",
+"region": 1085,
+"slug": "greve"
+},
+"259": {
+"name": "Køge",
+"region": 1085,
+"slug": "koege"
+},
+"260": {
+"name": "Halsnæs",
+"region": 1084,
+"slug": "halsnaes"
+},
+"265": {
+"name": "Roskilde",
+"region": 1085,
+"slug": "roskilde"
+},
+"269": {
+"name": "Solrød",
+"region": 1085,
+"slug": "solroed"
+},
+"270": {
+"name": "Gribskov",
+"region": 1084,
+"slug": "gribskov"
+},
+"306": {
+"name": "Odsherred",
+"region": 1085,
+"slug": "odsherred"
+},
+"316": {
+"name": "Holbæk",
+"region": 1085,
+"slug": "holbaek"
+},
+"320": {
+"name": "Faxe",
+"region": 1085,
+"slug": "faxe"
+},
+"326": {
+"name": "Kalundborg",
+"region": 1085,
+"slug": "kalundborg"
+},
+"329": {
+"name": "Ringsted",
+"region": 1085,
+"slug": "ringsted"
+},
+"330": {
+"name": "Slagelse",
+"region": 1085,
+"slug": "slagelse"
+},
+"336": {
+"name": "Stevns",
+"region": 1085,
+"slug": "stevns"
+},
+"340": {
+"name": "Sorø",
+"region": 1085,
+"slug": "soroe"
+},
+"350": {
+"name": "Lejre",
+"region": 1085,
+"slug": "lejre"
+},
+"360": {
+"name": "Lolland",
+"region": 1085,
+"slug": "lolland"
+},
+"370": {
+"name": "Næstved",
+"region": 1085,
+"slug": "naestved"
+},
+"376": {
+"name": "Guldborgsund",
+"region": 1085,
+"slug": "guldborgsund"
+},
+"390": {
+"name": "Vordingborg",
+"region": 1085,
+"slug": "vordingborg"
+},
+"400": {
+"name": "Bornholm",
+"region": 1084,
+"slug": "bornholm"
+},
+"410": {
+"name": "Middelfart",
+"region": 1083,
+"slug": "middelfart"
+},
+"411": {
+"name": "Christiansø",
+"region": 1084,
+"slug": "christiansoe"
+},
+"420": {
+"name": "Assens",
+"region": 1083,
+"slug": "assens"
+},
+"430": {
+"name": "Faaborg-Midtfyn",
+"region": 1083,
+"slug": "faaborg-midtfyn"
+},
+"440": {
+"name": "Kerteminde",
+"region": 1083,
+"slug": "kerteminde"
+},
+"450": {
+"name": "Nyborg",
+"region": 1083,
+"slug": "nyborg"
+},
+"461": {
+"name": "Odense",
+"region": 1083,
+"slug": "odense"
+},
+"479": {
+"name": "Svendborg",
+"region": 1083,
+"slug": "svendborg"
+},
+"480": {
+"name": "Nordfyns",
+"region": 1083,
+"slug": "nordfyns"
+},
+"482": {
+"name": "Langeland",
+"region": 1083,
+"slug": "langeland"
+},
+"492": {
+"name": "Ærø",
+"region": 1083,
+"slug": "aeroe"
+},
+"510": {
+"name": "Haderslev",
+"region": 1083,
+"slug": "haderslev"
+},
+"530": {
+"name": "Billund",
+"region": 1083,
+"slug": "billund"
+},
+"540": {
+"name": "Sønderborg",
+"region": 1083,
+"slug": "soenderborg"
+},
+"550": {
+"name": "Tønder",
+"region": 1083,
+"slug": "toender"
+},
+"561": {
+"name": "Esbjerg",
+"region": 1083,
+"slug": "esbjerg"
+},
+"563": {
+"name": "Fanø",
+"region": 1083,
+"slug": "fanoe"
+},
+"573": {
+"name": "Varde",
+"region": 1083,
+"slug": "varde"
+},
+"575": {
+"name": "Vejen",
+"region": 1083,
+"slug": "vejen"
+},
+"580": {
+"name": "Aabenraa",
+"region": 1083,
+"slug": "aabenraa"
+},
+"607": {
+"name": "Fredericia",
+"region": 1083,
+"slug": "fredericia"
+},
+"615": {
+"name": "Horsens",
+"region": 1082,
+"slug": "horsens"
+},
+"621": {
+"name": "Kolding",
+"region": 1083,
+"slug": "kolding"
+},
+"630": {
+"name": "Vejle",
+"region": 1083,
+"slug": "vejle"
+},
+"657": {
+"name": "Herning",
+"region": 1082,
+"slug": "herning"
+},
+"661": {
+"name": "Holstebro",
+"region": 1082,
+"slug": "holstebro"
+},
+"665": {
+"name": "Lemvig",
+"region": 1082,
+"slug": "lemvig"
+},
+"671": {
+"name": "Struer",
+"region": 1082,
+"slug": "struer"
+},
+"706": {
+"name": "Syddjurs",
+"region": 1082,
+"slug": "syddjurs"
+},
+"707": {
+"name": "Norddjurs",
+"region": 1082,
+"slug": "norddjurs"
+},
+"710": {
+"name": "Favrskov",
+"region": 1082,
+"slug": "favrskov"
+},
+"727": {
+"name": "Odder",
+"region": 1082,
+"slug": "odder"
+},
+"730": {
+"name": "Randers",
+"region": 1082,
+"slug": "randers"
+},
+"740": {
+"name": "Silkeborg",
+"region": 1082,
+"slug": "silkeborg"
+},
+"741": {
+"name": "Samsø",
+"region": 1082,
+"slug": "samsoe"
+},
+"746": {
+"name": "Skanderborg",
+"region": 1082,
+"slug": "skanderborg"
+},
+"751": {
+"name": "Aarhus",
+"region": 1082,
+"slug": "aarhus"
+},
+"756": {
+"name": "Ikast-Brande",
+"region": 1082,
+"slug": "ikast-brande"
+},
+"760": {
+"name": "Ringkøbing-Skjern",
+"region": 1082,
+"slug": "ringkoebing-skjern"
+},
+"766": {
+"name": "Hedensted",
+"region": 1082,
+"slug": "hedensted"
+},
+"773": {
+"name": "Morsø",
+"region": 1081,
+"slug": "morsoe"
+},
+"779": {
+"name": "Skive",
+"region": 1082,
+"slug": "skive"
+},
+"787": {
+"name": "Thisted",
+"region": 1081,
+"slug": "thisted"
+},
+"791": {
+"name": "Viborg",
+"region": 1082,
+"slug": "viborg"
+},
+"810": {
+"name": "Brønderslev",
+"region": 1081,
+"slug": "broenderslev"
+},
+"813": {
+"name": "Frederikshavn",
+"region": 1081,
+"slug": "frederikshavn"
+},
+"820": {
+"name": "Vesthimmerlands",
+"region": 1081,
+"slug": "vesthimmerlands"
+},
+"825": {
+"name": "Læsø",
+"region": 1081,
+"slug": "laesoe"
+},
+"840": {
+"name": "Rebild",
+"region": 1081,
+"slug": "rebild"
+},
+"846": {
+"name": "Mariagerfjord",
+"region": 1081,
+"slug": "mariagerfjord"
+},
+"849": {
+"name": "Jammerbugt",
+"region": 1081,
+"slug": "jammerbugt"
+},
+"851": {
+"name": "Aalborg",
+"region": 1081,
+"slug": "aalborg"
+},
+"860": {
+"name": "Hjørring",
+"region": 1081,
+"slug": "hjoerring"
+}
+}

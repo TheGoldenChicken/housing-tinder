@@ -1,0 +1,68 @@
+name: Scrape and deploy
+
+on:
+  schedule:
+    # Runs daily at 04:00 UTC. Examples: weekly "0 4 * * 1", monthly "0 4 1 * *".
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: "Comma-separated sources (empty = all from config.yaml)"
+        required: false
+        default: ""
+      max_pages:
+        description: "Max pages per source (empty = all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  scrape-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+        id: pages
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --frozen
+
+      - name: Scrape
+        env:
+          STATE_URL: ${{ steps.pages.outputs.base_url }}/data
+        run: |
+          ARGS="--out site/data --state-url $STATE_URL"
+          [ -n "${{ inputs.sources }}" ] && ARGS="$ARGS --sources ${{ inputs.sources }}"
+          [ -n "${{ inputs.max_pages }}" ] && ARGS="$ARGS --max-pages ${{ inputs.max_pages }}"
+          mkdir -p site/data
+          uv run scrape $ARGS
+
+      - name: Assemble site
+        run: |
+          cp -r app/. site/
+          echo "Deployed $(date -u +%FT%TZ)" > site/version.txt
+          du -sh site site/data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - uses: actions/deploy-pages@v4
+        id: deploy

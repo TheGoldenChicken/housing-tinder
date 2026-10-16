@@ -1,0 +1,26 @@
+# Housing Tinder scraper configuration.
+# Sources run in this order; each one fails independently and is reported in data/index.json.
+sources:
+  - boligsiden    # sale + andel + realtor rentals (api.boligsiden.dk)
+  - boliga        # sale + andel (api.boliga.dk)
+  - boligportal   # rentals, ~12k (needs Cloudflare cookie dance; ~700 requests)
+  - findbolig     # non-profit rentals, individually advertised units
+  - edc           # EDC's own rentals
+  - home          # home.dk rentals
+  - lejebolig     # rentals, ~10k (HTML; details fetched gradually, see detail_budget)
+  - boligzonen    # rentals, ~9k (HTML; details fetched gradually, see detail_budget)
+
+# Seconds between requests (be polite; sites are small Danish businesses).
+request_delay: 0.8
+
+# Base URL of the deployed data directory, used to carry first_seen dates and
+# per-source caches between runs. The GitHub Actions workflow sets this automatically;
+# set it here only for local runs against the live site.
+state_url: ""
+
+source_config:
+  # Sites whose list pages lack zip/coordinates need one detail request per listing.
+  # The budget caps how many NEW listings get their details fetched per run; the rest are
+  # picked up on later runs (details are cached in data/cache/<source>.json).
+  lejebolig: { detail_budget: 400 }
+  boligzonen: { detail_budget: 400 }

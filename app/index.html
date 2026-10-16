@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#111318">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Housing Tinder</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <nav class="tabs" id="tabs">
+    <button data-cat="sale">For sale</button>
+    <button data-cat="rent">For rent</button>
+    <button data-cat="andel">Andel</button>
+  </nav>
+  <div class="actions">
+    <button id="btn-filters" title="Filters" aria-label="Filters">⚙</button>
+    <button id="btn-likes" title="Likes" aria-label="Likes">♥<span id="likes-count" class="count"></span></button>
+    <button id="btn-settings" title="Settings" aria-label="Settings">⋯</button>
+  </div>
+</header>
+
+<main id="main">
+  <div id="status" class="status"></div>
+  <section id="deck" class="deck"></section>
+  <div id="empty" class="empty hidden">
+    <h2>No more matches</h2>
+    <p id="empty-text"></p>
+    <button id="btn-empty-filters" class="primary">Adjust filters</button>
+  </div>
+  <div class="controls" id="controls">
+    <button id="btn-pass" class="ctl pass" aria-label="Pass">✕</button>
+    <button id="btn-undo" class="ctl undo" aria-label="Undo">↶</button>
+    <button id="btn-like" class="ctl like" aria-label="Like">♥</button>
+  </div>
+</main>
+
+<!-- Filters -->
+<dialog id="dlg-filters" class="sheet">
+  <form method="dialog" id="form-filters">
+    <header><h2 id="filters-title">Filters</h2><button type="submit" class="primary">Done</button></header>
+    <div class="body">
+      <fieldset>
+        <legend>Municipalities <small id="muni-selected"></small></legend>
+        <input type="search" id="muni-search" placeholder="Search municipality…">
+        <div id="muni-list" class="checklist"></div>
+        <div class="row"><button type="button" class="link" id="muni-clear">Clear</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Zip codes</legend>
+        <input type="text" name="zips" placeholder="e.g. 2100, 2200-2300, 8000">
+      </fieldset>
+      <fieldset>
+        <legend id="price-legend">Price (kr.)</legend>
+        <div class="row"><input type="number" name="price_min" placeholder="min" inputmode="numeric"><span>–</span><input type="number" name="price_max" placeholder="max" inputmode="numeric"></div>
+      </fieldset>
+      <fieldset id="fs-monthly">
+        <legend>Max monthly cost (kr.)</legend>
+        <input type="number" name="monthly_max" placeholder="ejerudgift / boligafgift" inputmode="numeric">
+      </fieldset>
+      <fieldset>
+        <legend>Size (m²)</legend>
+        <div class="row"><input type="number" name="size_min" placeholder="min" inputmode="numeric"><span>–</span><input type="number" name="size_max" placeholder="max" inputmode="numeric"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Rooms</legend>
+        <div class="row"><input type="number" name="rooms_min" placeholder="min" inputmode="numeric" step="0.5"><span>–</span><input type="number" name="rooms_max" placeholder="max" inputmode="numeric" step="0.5"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Property type</legend>
+        <div class="chips-select" id="type-select">
+          <label><input type="checkbox" name="types" value="house">House</label>
+          <label><input type="checkbox" name="types" value="townhouse">Townhouse</label>
+          <label><input type="checkbox" name="types" value="apartment">Apartment</label>
+          <label><input type="checkbox" name="types" value="villa_apartment">Villa apartment</label>
+          <label><input type="checkbox" name="types" value="farm">Farm</label>
+          <label><input type="checkbox" name="types" value="room">Room</label>
+          <label><input type="checkbox" name="types" value="other">Other</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Year built</legend>
+        <div class="row"><input type="number" name="year_min" placeholder="from" inputmode="numeric"><span>–</span><input type="number" name="year_max" placeholder="to" inputmode="numeric"></div>
+        <label class="check"><input type="checkbox" name="year_unknown_ok" checked> Include listings with unknown year</label>
+      </fieldset>
+      <fieldset>
+        <legend>Must have</legend>
+        <label class="check"><input type="checkbox" name="req_bathroom"> Own bathroom (excludes listings with no bathroom info)</label>
+        <label class="check"><input type="checkbox" name="req_balcony"> Balcony</label>
+        <label class="check"><input type="checkbox" name="req_elevator"> Elevator</label>
+        <label class="check" data-cat="rent"><input type="checkbox" name="req_pets"> Pets allowed</label>
+        <label class="check" data-cat="rent"><input type="checkbox" name="req_unlimited"> Unlimited rental period</label>
+      </fieldset>
+      <fieldset>
+        <legend>More</legend>
+        <div class="row"><label>Max floor <input type="number" name="floor_max" placeholder="any" inputmode="numeric"></label></div>
+        <div class="row"><label>Min lot (m²) <input type="number" name="lot_min" placeholder="any" inputmode="numeric"></label></div>
+        <div class="row"><label>Energy label at least
+          <select name="energy_min"><option value="">any</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select></label></div>
+        <label class="check"><input type="checkbox" name="energy_unknown_ok" checked> Include unknown energy label</label>
+        <div class="row"><label>Only listings first seen within <input type="number" name="max_age_days" placeholder="any" inputmode="numeric"> days</label></div>
+      </fieldset>
+      <fieldset>
+        <legend>Distance</legend>
+        <div class="row"><input type="number" name="radius_km" placeholder="max km" inputmode="decimal" step="0.5"></div>
+        <div class="row"><input type="text" name="center_lat" placeholder="lat" inputmode="decimal"><input type="text" name="center_lon" placeholder="lon" inputmode="decimal"><button type="button" id="btn-geoloc" class="small">Use my location</button></div>
+        <small>Paste coordinates from Google Maps (right-click → copy) or use your location.</small>
+      </fieldset>
+      <fieldset>
+        <legend>Order</legend>
+        <select name="sort"><option value="newest">Newest first</option><option value="price_asc">Cheapest first</option><option value="price_desc">Most expensive first</option><option value="size_desc">Largest first</option><option value="random">Random</option></select>
+      </fieldset>
+      <div class="row"><button type="button" class="link danger" id="btn-reset-filters">Reset filters for this category</button></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Likes -->
+<dialog id="dlg-likes" class="sheet">
+  <header><h2>Likes</h2><button class="primary" id="btn-likes-close">Close</button></header>
+  <div class="body">
+    <p class="muted" id="likes-sheet-link"></p>
+    <div class="row"><button type="button" class="small" id="btn-export">Export CSV</button></div>
+    <div id="likes-list" class="likes-list"></div>
+  </div>
+</dialog>
+
+<!-- Settings -->
+<dialog id="dlg-settings" class="sheet">
+  <form method="dialog" id="form-settings">
+    <header><h2>Settings</h2><button type="submit" class="primary">Save</button></header>
+    <div class="body">
+      <fieldset>
+        <legend>Who are you?</legend>
+        <input type="text" name="user" placeholder="your name (used for the sheet)" required>
+      </fieldset>
+      <fieldset>
+        <legend>Google Sheet endpoint</legend>
+        <input type="url" name="endpoint" placeholder="https://script.google.com/macros/s/…/exec">
+        <small>Apps Script web-app URL (see README). Leave empty to keep swipes on this device only.</small>
+        <input type="url" name="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/… (optional link)">
+      </fieldset>
+      <fieldset>
+        <legend>Data</legend>
+        <input type="text" name="dataUrl" placeholder="./data">
+        <small id="data-info"></small>
+      </fieldset>
+      <fieldset>
+        <legend>Maintenance</legend>
+        <div class="row"><button type="button" class="small" id="btn-sync">Sync now</button><button type="button" class="small" id="btn-reload">Reload data</button></div>
+        <div class="row"><button type="button" class="link danger" id="btn-reset-swipes">Forget all swipes on this device</button></div>
+        <small id="sync-info"></small>
+      </fieldset>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>
