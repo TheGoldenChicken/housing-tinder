@@ -69,8 +69,12 @@ starting.
    [sheets/Code.gs](sheets/Code.gs), save.
 2. **Deploy → New deployment → Web app**. *Execute as:* Me. *Who has access:* Anyone. Deploy and
    copy the web-app URL (ends with `/exec`).
-3. In the app: ⋯ → *Settings* → paste the URL as *Google Sheet endpoint*, enter your name, and
-   optionally the sheet's own URL for a quick link. Save.
+3. Open the deployed app in a browser (your GitHub Pages URL, on the phone or a computer). Tap the
+   **⋯** button in the top-right corner to open *Settings*, paste the URL as *Google Sheet endpoint*,
+   enter your name, and optionally the sheet's own URL for a quick link. Save.
+
+   Settings live in that browser only, so repeat this on every device you use. Use the same name
+   everywhere and your swipes stay in sync across devices through the sheet.
 
 The script creates two tabs: **Likes** (one row per right-swipe with price, size, rooms, year,
 bathrooms, energy label, links to every site it was found on, image, coordinates…) and **Swipes**
