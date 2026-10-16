@@ -466,7 +466,7 @@ async function reloadAll() {
 }
 function bind() {
   $$("#tabs button").forEach((b) => (b.onclick = () => switchTab(b.dataset.cat)));
-  $("#btn-filters").onclick = openFilters; $("#btn-empty-filters").onclick = openFilters;
+  $("#btn-filters").onclick = openFilters; $("#btn-empty-filters").onclick = openFilters; $("#btn-empty-likes").onclick = openLikes;
   $("#btn-likes").onclick = openLikes; $("#btn-likes-close").onclick = () => $("#dlg-likes").close();
   $("#btn-settings").onclick = openSettings;
   $("#btn-like").onclick = () => { const c = $("#deck .card:last-child"); if (c) flyOut(c, "like"); };
