@@ -42,12 +42,13 @@ main { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 0
 .photos .zone { position: absolute; top: 0; bottom: 0; width: 40%; }
 .photos .zone.l { left: 0; } .photos .zone.r { right: 0; }
 .photos .nophoto { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+.photos .dots, .stamp { pointer-events: none; }
 .stamp { position: absolute; top: 24px; padding: 6px 12px; border: 4px solid; border-radius: 8px; font-weight: 800; font-size: 28px; letter-spacing: 2px; opacity: 0; transform: rotate(-15deg); }
 .stamp.like { left: 16px; color: var(--like); border-color: var(--like); }
 .stamp.nope { right: 16px; color: var(--pass); border-color: var(--pass); transform: rotate(15deg); }
 .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--accent); color: #fff; vertical-align: middle; margin-left: 6px; }
 .badge.src { background: var(--panel-2); color: var(--muted); }
-.info { padding: 12px 14px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+.info { padding: 12px 14px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
 .info .price { font-size: 24px; font-weight: 800; }
 .info .price .sub { font-size: 14px; font-weight: 500; color: var(--muted); margin-left: 6px; }
 .info .addr { font-size: 15px; margin: 2px 0 8px; }

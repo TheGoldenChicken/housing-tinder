@@ -219,10 +219,11 @@ function renderDeck() {
 /* ---------- swipe mechanics ---------- */
 function attachSwipe(card) {
   if (!card) return;
-  let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false, moved = false, t0 = 0;
+  let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false, moved = false, t0 = 0, downTarget = null;
   const photos = $(".photos", card), desc = $(".desc", card);
   const like = $(".stamp.like", card), nope = $(".stamp.nope", card);
-  const onDown = (e) => { if (e.button && e.button !== 0) return; dragging = true; moved = false; startX = e.clientX; startY = e.clientY; t0 = Date.now(); card.setPointerCapture(e.pointerId); card.classList.add("dragging"); };
+  // Pointer capture makes later events target the card, so remember what was tapped on pointerdown.
+  const onDown = (e) => { if (e.button && e.button !== 0) return; dragging = true; moved = false; downTarget = e.target; startX = e.clientX; startY = e.clientY; t0 = Date.now(); card.setPointerCapture(e.pointerId); card.classList.add("dragging"); };
   const onMove = (e) => {
     if (!dragging) return;
     dx = e.clientX - startX; dy = e.clientY - startY;
@@ -237,10 +238,12 @@ function attachSwipe(card) {
     const vx = dx / Math.max(1, Date.now() - t0);
     if (moved && (Math.abs(dx) > 110 || Math.abs(vx) > 0.6)) { flyOut(card, dx > 0 ? "like" : "pass"); return; }
     card.style.transform = ""; like.style.opacity = 0; nope.style.opacity = 0;
-    if (!moved) {
-      if (e.target.closest(".zone")) { stepPhoto(card, e.target.classList.contains("r") ? 1 : -1); }
-      else if (e.target.closest(".desc")) desc.classList.toggle("open");
+    if (!moved && downTarget && e.type !== "pointercancel") {
+      const zone = downTarget.closest(".zone");
+      if (zone) stepPhoto(card, zone.classList.contains("r") ? 1 : -1);
+      else if (downTarget.closest(".desc")) desc.classList.toggle("open");
     }
+    downTarget = null;
     dx = dy = 0;
   };
   card.addEventListener("pointerdown", onDown);

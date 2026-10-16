@@ -1,5 +1,5 @@
 // App shell is cached; data (./data/*) is always network-first so listings stay fresh.
-const SHELL = "housing-shell-v1";
+const SHELL = "housing-shell-v2";
 const ASSETS = ["./", "./index.html", "./app.js", "./styles.css", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
