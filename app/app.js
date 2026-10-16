@@ -179,7 +179,7 @@ function cardHtml(l, cat) {
     <div class="photos" style="background-image:url('${photos[0] || ""}')">
       ${photos.length ? `<div class="dots">${photos.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : `<div class="nophoto">No photo</div>`}
       <div class="zone l"></div><div class="zone r"></div>
-      <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div>
+      <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div><div class="stamp super">SUPER</div>
     </div>
     <div class="info">
       <div class="price">${money(l.price, cat)}${isNew ? '<span class="badge">NEW</span>' : ""}${sub.length ? `<span class="sub">${sub.join(" · ")}</span>` : ""}</div>
@@ -221,7 +221,8 @@ function attachSwipe(card) {
   if (!card) return;
   let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false, moved = false, t0 = 0, downTarget = null;
   const photos = $(".photos", card), desc = $(".desc", card);
-  const like = $(".stamp.like", card), nope = $(".stamp.nope", card);
+  const like = $(".stamp.like", card), nope = $(".stamp.nope", card), sup = $(".stamp.super", card);
+  const isUp = () => dy < -110 && Math.abs(dx) < Math.abs(dy) * 0.6;
   // Pointer capture makes later events target the card, so remember what was tapped on pointerdown.
   const onDown = (e) => { if (e.button && e.button !== 0) return; dragging = true; moved = false; downTarget = e.target; startX = e.clientX; startY = e.clientY; t0 = Date.now(); card.setPointerCapture(e.pointerId); card.classList.add("dragging"); };
   const onMove = (e) => {
@@ -230,14 +231,17 @@ function attachSwipe(card) {
     if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
     if (!moved) return;
     if (Math.abs(dy) > Math.abs(dx) * 1.5 && e.target.closest(".info")) { return; } // let info scroll vertically
-    card.style.transform = `translate(${dx}px, ${dy * 0.3}px) rotate(${dx / 18}deg)`;
-    like.style.opacity = Math.min(1, Math.max(0, dx / 90)); nope.style.opacity = Math.min(1, Math.max(0, -dx / 90));
+    const upward = dy < 0 && Math.abs(dx) < Math.abs(dy) * 0.6;
+    card.style.transform = `translate(${dx}px, ${upward ? dy * 0.6 : dy * 0.3}px) rotate(${dx / 18}deg)`;
+    like.style.opacity = upward ? 0 : Math.min(1, Math.max(0, dx / 90)); nope.style.opacity = upward ? 0 : Math.min(1, Math.max(0, -dx / 90));
+    sup.style.opacity = upward ? Math.min(1, Math.max(0, -dy / 110)) : 0;
   };
   const onUp = (e) => {
     if (!dragging) return; dragging = false; card.classList.remove("dragging");
     const vx = dx / Math.max(1, Date.now() - t0);
+    if (moved && isUp()) { flyOut(card, "superlike"); return; }
     if (moved && (Math.abs(dx) > 110 || Math.abs(vx) > 0.6)) { flyOut(card, dx > 0 ? "like" : "pass"); return; }
-    card.style.transform = ""; like.style.opacity = 0; nope.style.opacity = 0;
+    card.style.transform = ""; like.style.opacity = 0; nope.style.opacity = 0; sup.style.opacity = 0;
     if (!moved && downTarget && e.type !== "pointercancel") {
       const zone = downTarget.closest(".zone");
       if (zone) stepPhoto(card, zone.classList.contains("r") ? 1 : -1);
@@ -260,7 +264,9 @@ function stepPhoto(card, dir) {
 }
 function flyOut(card, action) {
   const dir = action === "like" ? 1 : -1;
-  card.style.transform = `translate(${dir * (window.innerWidth + 200)}px, -40px) rotate(${dir * 30}deg)`;
+  card.style.transform = action === "superlike"
+    ? `translate(0, ${-(window.innerHeight + 200)}px) scale(.9)`
+    : `translate(${dir * (window.innerWidth + 200)}px, -40px) rotate(${dir * 30}deg)`;
   card.style.opacity = "0";
   setTimeout(() => commit(action), 200);
 }
@@ -269,7 +275,7 @@ function commit(action) {
   state.history.push({ id: l.id, listing: l });
   state.swipes[l.id] = { a: action, t: Date.now(), c: state.cat };
   store.set("swipes", state.swipes);
-  if (action === "like") { state.liked[l.id] = l; store.set("liked", state.liked); }
+  if (action === "like" || action === "superlike") { state.liked[l.id] = { ...l, superlike: action === "superlike" }; store.set("liked", state.liked); }
   enqueue({ action, listing: slim(l) });
   updateLikesCount();
   renderDeck();
@@ -278,7 +284,7 @@ function undo() {
   const h = state.history.pop(); if (!h) { toast("Nothing to undo"); return; }
   const was = state.swipes[h.id];
   delete state.swipes[h.id]; store.set("swipes", state.swipes);
-  if (was && was.a === "like") { delete state.liked[h.id]; store.set("liked", state.liked); enqueue({ action: "unlike", listing: slim(h.listing) }); }
+  if (was && (was.a === "like" || was.a === "superlike")) { delete state.liked[h.id]; store.set("liked", state.liked); enqueue({ action: "unlike", listing: slim(h.listing) }); }
   else enqueue({ action: "undo", listing: slim(h.listing) });
   state.queue.unshift(h.listing);
   updateLikesCount();
@@ -316,9 +322,13 @@ async function pullRemote() {
     const j = await fetchJson(`${endpoint}?user=${encodeURIComponent(user)}&_=${Date.now()}`);
     let added = 0;
     (j.liked || []).forEach((id) => { if (!state.swipes[id]) { state.swipes[id] = { a: "like", t: 0, remote: true }; added++; } });
+    (j.superliked || []).forEach((id) => { if (!state.swipes[id] || state.swipes[id].a === "like") { state.swipes[id] = { a: "superlike", t: state.swipes[id]?.t || 0, remote: true }; added++; } });
     (j.passed || []).forEach((id) => { if (!state.swipes[id]) { state.swipes[id] = { a: "pass", t: 0, remote: true }; added++; } });
     // liked on another device: cache listing for the likes view when we can find it
-    Object.values(state.listings).flat().forEach((l) => { if (state.swipes[l.id] && state.swipes[l.id].a === "like" && !state.liked[l.id]) state.liked[l.id] = l; });
+    Object.values(state.listings).flat().forEach((l) => {
+      const sw = state.swipes[l.id];
+      if (sw && (sw.a === "like" || sw.a === "superlike") && (!state.liked[l.id] || !!state.liked[l.id].superlike !== (sw.a === "superlike"))) state.liked[l.id] = { ...l, superlike: sw.a === "superlike" };
+    });
     if (added) { store.set("swipes", state.swipes); store.set("liked", state.liked); }
     updateLikesCount();
     $("#sync-info").textContent = `Synced ${new Date().toLocaleTimeString()} · ${(j.liked || []).length} likes on sheet`;
@@ -368,13 +378,13 @@ async function applyFilters() {
 }
 function openLikes() {
   const list = $("#likes-list"); list.innerHTML = "";
-  const items = Object.values(state.liked).sort((a, b) => (state.swipes[b.id]?.t || 0) - (state.swipes[a.id]?.t || 0));
+  const items = Object.values(state.liked).sort((a, b) => (b.superlike ? 1 : 0) - (a.superlike ? 1 : 0) || (state.swipes[b.id]?.t || 0) - (state.swipes[a.id]?.t || 0));
   $("#likes-sheet-link").innerHTML = state.settings.sheetUrl ? `Full details for review: <a href="${esc(state.settings.sheetUrl)}" target="_blank" rel="noopener">open the Google Sheet ↗</a>` : (state.settings.endpoint ? "Likes are also stored in your Google Sheet." : "Likes are stored on this device only (set a sheet endpoint in settings to sync).");
   if (!items.length) list.innerHTML = '<p class="muted">No likes yet.</p>';
   items.forEach((l) => {
     const el = document.createElement("div"); el.className = "like-item";
     el.innerHTML = `${l.images?.[0] ? `<img src="${esc(l.images[0])}" loading="lazy">` : '<div class="noimg"></div>'}
-      <div class="t"><b>${money(l.price, l.category)}</b><div class="a">${esc(l.address || "")}, ${l.zip_code || ""} ${esc(l.city || "")}</div>
+      <div class="t"><b>${money(l.price, l.category)}${l.superlike ? '<span class="badge super">★ SUPER</span>' : ""}</b><div class="a">${esc(l.address || "")}, ${l.zip_code || ""} ${esc(l.city || "")}</div>
       <div class="muted">${l.size_m2 ? l.size_m2 + " m² · " : ""}${TYPE_LABEL[l.property_type] || ""} · <a href="${esc(l.url)}" target="_blank" rel="noopener">open ↗</a></div></div>
       <button title="Remove like" data-id="${l.id}">✕</button>`;
     $("button", el).onclick = () => {
@@ -387,8 +397,8 @@ function openLikes() {
   $("#dlg-likes").showModal();
 }
 function exportCsv() {
-  const cols = ["id", "category", "property_type", "address", "zip_code", "city", "municipality", "price", "monthly_cost", "deposit", "size_m2", "lot_m2", "rooms", "floor", "bathrooms", "year_built", "energy_label", "available_from", "listed_date", "first_seen", "url", "title"];
-  const rows = [cols.join(";")].concat(Object.values(state.liked).map((l) => cols.map((c) => `"${String(l[c] ?? "").replace(/"/g, '""')}"`).join(";")));
+  const cols = ["superlike", "id", "category", "property_type", "address", "zip_code", "city", "municipality", "price", "monthly_cost", "deposit", "size_m2", "lot_m2", "rooms", "floor", "bathrooms", "year_built", "energy_label", "available_from", "listed_date", "first_seen", "url", "title"];
+  const rows = [cols.join(";")].concat(Object.values(state.liked).map((l) => cols.map((c) => `"${String(c === "superlike" ? (l.superlike ? "yes" : "no") : (l[c] ?? "")).replace(/"/g, '""')}"`).join(";")));
   const blob = new Blob(["﻿" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "housing-likes.csv"; a.click();
 }
@@ -424,6 +434,7 @@ function bind() {
   $("#btn-settings").onclick = openSettings;
   $("#btn-like").onclick = () => { const c = $("#deck .card:last-child"); if (c) flyOut(c, "like"); };
   $("#btn-pass").onclick = () => { const c = $("#deck .card:last-child"); if (c) flyOut(c, "pass"); };
+  $("#btn-super").onclick = () => { const c = $("#deck .card:last-child"); if (c) flyOut(c, "superlike"); };
   $("#btn-undo").onclick = undo;
   $("#form-filters").addEventListener("submit", applyFilters);
   $("#form-settings").addEventListener("submit", async () => { saveSettings(); await reloadAll(); pullRemote(); flushOutbox(); });
@@ -438,7 +449,7 @@ function bind() {
   $("#btn-reset-swipes").onclick = () => { if (confirm("Forget all swipes stored on this device? (The sheet is not changed.)")) { state.swipes = {}; state.liked = {}; store.set("swipes", {}); store.set("liked", {}); updateLikesCount(); rebuildQueue(); $("#dlg-settings").close(); } };
   document.addEventListener("keydown", (e) => {
     if ($$("dialog[open]").length) return;
-    if (e.key === "ArrowRight") $("#btn-like").click(); else if (e.key === "ArrowLeft") $("#btn-pass").click(); else if (e.key === "ArrowUp" || e.key === "Backspace") undo();
+    if (e.key === "ArrowRight") $("#btn-like").click(); else if (e.key === "ArrowLeft") $("#btn-pass").click(); else if (e.key === "ArrowUp") $("#btn-super").click(); else if (e.key === "Backspace") undo();
   });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { pullRemote().then(rebuildQueue); flushOutbox(); } });
 }

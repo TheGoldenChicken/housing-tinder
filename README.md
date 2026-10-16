@@ -76,8 +76,8 @@ starting.
    Settings live in that browser only, so repeat this on every device you use. Use the same name
    everywhere and your swipes stay in sync across devices through the sheet.
 
-The script creates two tabs: **Likes** (one row per right-swipe with price, size, rooms, year,
-bathrooms, energy label, links to every site it was found on, image, coordinates…) and **Swipes**
+The script creates two tabs: **Likes** (one row per like or super-like with price, size, rooms, year,
+bathrooms, energy label, links to every site it was found on, image, coordinates, a `super` flag…) and **Swipes**
 (every like/pass/unlike, used to sync between devices). Each user enters their own name, so two
 people can share one sheet or use separate ones. Without an endpoint, swipes stay in the browser.
 
@@ -94,8 +94,11 @@ caches the app shell offline; listing data is always fetched fresh.
   max floor, lot size, energy label, how recently the listing appeared, and max distance from a point
   (paste coordinates from Google Maps or use your location). Choosing municipalities also makes the
   app download only those files, which keeps it fast.
-- **Swipe** right / ♥ to like, left / ✕ to pass, ↶ to undo. Tap the photo edges to flip through
-  pictures, tap the description to expand it. Arrow keys work on desktop.
+- **Swipe** right / ♥ to like, left / ✕ to pass, **up / ★ to super-like**, ↶ to undo. Tap the photo
+  edges to flip through pictures, tap the description to expand it. On desktop: → like, ← pass,
+  ↑ super-like, Backspace undo.
+- **Super-likes** are likes you want to act on first: they sort to the top of the likes view with a
+  ★ badge, get `super = TRUE` in the sheet's Likes tab, and a `superlike` column in the CSV export.
 - **♥ Likes**: review liked listings, remove likes, export CSV, open the sheet.
 - Listings first seen in the last three days carry a **NEW** badge.
 
