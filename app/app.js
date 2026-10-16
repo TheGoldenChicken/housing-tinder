@@ -17,10 +17,12 @@ const store = {
 
 const state = {
   cat: store.get("tab", "sale"),
-  settings: Object.assign({ user: "", endpoint: "", sheetUrl: "", dataUrl: "./data" }, store.get("settings", {})),
+  settings: Object.assign({ user: "", endpoint: "", sheetUrl: "", dataUrl: "./data", partner: "" }, store.get("settings", {})),
   swipes: store.get("swipes", {}),     // id -> {a: like|pass, t: ms, c: cat}
   liked: store.get("liked", {}),       // id -> listing (cache for the likes view)
   outbox: store.get("outbox", []),     // pending posts to the sheet
+  matches: store.get("matches", {}),   // id -> ms when we learned both of us liked it
+  partnerLiked: new Set(),             // ids the partner has liked (from the sheet)
   index: null,
   listings: {},                        // cat -> array (filtered by municipality files)
   loadedKey: {},                       // cat -> key of what is loaded
@@ -277,6 +279,7 @@ function commit(action) {
   store.set("swipes", state.swipes);
   if (action === "like" || action === "superlike") { state.liked[l.id] = { ...l, superlike: action === "superlike" }; store.set("liked", state.liked); }
   enqueue({ action, listing: slim(l) });
+  if ((action === "like" || action === "superlike") && state.partnerLiked.has(l.id)) recordMatches([l.id]);
   updateLikesCount();
   renderDeck();
 }
@@ -284,7 +287,7 @@ function undo() {
   const h = state.history.pop(); if (!h) { toast("Nothing to undo"); return; }
   const was = state.swipes[h.id];
   delete state.swipes[h.id]; store.set("swipes", state.swipes);
-  if (was && (was.a === "like" || was.a === "superlike")) { delete state.liked[h.id]; store.set("liked", state.liked); enqueue({ action: "unlike", listing: slim(h.listing) }); }
+  if (was && (was.a === "like" || was.a === "superlike")) { delete state.liked[h.id]; delete state.matches[h.id]; store.set("liked", state.liked); store.set("matches", state.matches); enqueue({ action: "unlike", listing: slim(h.listing) }); }
   else enqueue({ action: "undo", listing: slim(h.listing) });
   state.queue.unshift(h.listing);
   updateLikesCount();
@@ -306,7 +309,7 @@ async function flushOutbox() {
   flushing = true;
   const batch = state.outbox.slice(0, 50);
   try {
-    const r = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ user, action: "batch", swipes: batch }), redirect: "follow" });
+    const r = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ user, partner: state.settings.partner || "", action: "batch", swipes: batch }), redirect: "follow" });
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || "sheet error");
     state.outbox = state.outbox.slice(batch.length); store.set("outbox", state.outbox);
@@ -319,7 +322,8 @@ async function pullRemote() {
   const { endpoint, user } = state.settings;
   if (!endpoint || !user) return;
   try {
-    const j = await fetchJson(`${endpoint}?user=${encodeURIComponent(user)}&_=${Date.now()}`);
+    const j = await fetchJson(`${endpoint}?user=${encodeURIComponent(user)}&partner=${encodeURIComponent(state.settings.partner || "")}&_=${Date.now()}`);
+    state.partnerLiked = new Set(j.partner_liked || []);
     let added = 0;
     (j.liked || []).forEach((id) => { if (!state.swipes[id]) { state.swipes[id] = { a: "like", t: 0, remote: true }; added++; } });
     (j.superliked || []).forEach((id) => { if (!state.swipes[id] || state.swipes[id].a === "like") { state.swipes[id] = { a: "superlike", t: state.swipes[id]?.t || 0, remote: true }; added++; } });
@@ -331,8 +335,39 @@ async function pullRemote() {
     });
     if (added) { store.set("swipes", state.swipes); store.set("liked", state.liked); }
     updateLikesCount();
+    const fresh = (j.matches || []).filter((id) => !state.matches[id]);
+    if (fresh.length) recordMatches(fresh);
     $("#sync-info").textContent = `Synced ${new Date().toLocaleTimeString()} · ${(j.liked || []).length} likes on sheet`;
   } catch (e) { console.warn("pull failed", e); $("#sync-info").textContent = `Could not read sheet: ${e.message}`; }
+}
+
+/* ---------- matches ---------- */
+function findListing(id) {
+  return state.liked[id] || Object.values(state.listings).flat().find((l) => l.id === id) || null;
+}
+function recordMatches(ids) {
+  const now = Date.now();
+  ids.forEach((id) => { state.matches[id] = now; });
+  store.set("matches", state.matches);
+  showMatch(ids);
+}
+function showMatch(ids) {
+  const partner = state.settings.partner || "your partner";
+  const items = ids.map(findListing).filter(Boolean);
+  $("#match-text").textContent = ids.length === 1
+    ? `You and ${partner} both liked this one.`
+    : `You and ${partner} both liked ${ids.length} homes.`;
+  const list = $("#match-list"); list.innerHTML = "";
+  items.forEach((l) => {
+    const el = document.createElement("div"); el.className = "like-item";
+    el.innerHTML = `${l.images?.[0] ? `<img src="${esc(l.images[0])}" loading="lazy">` : '<div class="noimg"></div>'}
+      <div class="t"><b>${money(l.price, l.category)}</b><div class="a">${esc(l.address || "")}, ${l.zip_code || ""} ${esc(l.city || "")}</div>
+      <div class="muted">${l.size_m2 ? l.size_m2 + " m² · " : ""}<a href="${esc(l.url)}" target="_blank" rel="noopener">open ↗</a></div></div>`;
+    list.appendChild(el);
+  });
+  if (!items.length) list.innerHTML = `<p class="muted">Details are in the sheet's Matches tab.</p>`;
+  $("#dlg-match").showModal();
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
 }
 
 /* ---------- dialogs ---------- */
@@ -378,18 +413,19 @@ async function applyFilters() {
 }
 function openLikes() {
   const list = $("#likes-list"); list.innerHTML = "";
-  const items = Object.values(state.liked).sort((a, b) => (b.superlike ? 1 : 0) - (a.superlike ? 1 : 0) || (state.swipes[b.id]?.t || 0) - (state.swipes[a.id]?.t || 0));
+  const isMatch = (l) => (state.matches[l.id] ? 1 : 0);
+  const items = Object.values(state.liked).sort((a, b) => isMatch(b) - isMatch(a) || (b.superlike ? 1 : 0) - (a.superlike ? 1 : 0) || (state.swipes[b.id]?.t || 0) - (state.swipes[a.id]?.t || 0));
   $("#likes-sheet-link").innerHTML = state.settings.sheetUrl ? `Full details for review: <a href="${esc(state.settings.sheetUrl)}" target="_blank" rel="noopener">open the Google Sheet ↗</a>` : (state.settings.endpoint ? "Likes are also stored in your Google Sheet." : "Likes are stored on this device only (set a sheet endpoint in settings to sync).");
   if (!items.length) list.innerHTML = '<p class="muted">No likes yet.</p>';
   items.forEach((l) => {
     const el = document.createElement("div"); el.className = "like-item";
     el.innerHTML = `${l.images?.[0] ? `<img src="${esc(l.images[0])}" loading="lazy">` : '<div class="noimg"></div>'}
-      <div class="t"><b>${money(l.price, l.category)}${l.superlike ? '<span class="badge super">★ SUPER</span>' : ""}</b><div class="a">${esc(l.address || "")}, ${l.zip_code || ""} ${esc(l.city || "")}</div>
+      <div class="t"><b>${money(l.price, l.category)}${state.matches[l.id] ? '<span class="badge match">MATCH</span>' : ""}${l.superlike ? '<span class="badge super">★ SUPER</span>' : ""}</b><div class="a">${esc(l.address || "")}, ${l.zip_code || ""} ${esc(l.city || "")}</div>
       <div class="muted">${l.size_m2 ? l.size_m2 + " m² · " : ""}${TYPE_LABEL[l.property_type] || ""} · <a href="${esc(l.url)}" target="_blank" rel="noopener">open ↗</a></div></div>
       <button title="Remove like" data-id="${l.id}">✕</button>`;
     $("button", el).onclick = () => {
-      delete state.liked[l.id]; state.swipes[l.id] = { a: "pass", t: Date.now(), c: l.category };
-      store.set("liked", state.liked); store.set("swipes", state.swipes); enqueue({ action: "unlike", listing: slim(l) });
+      delete state.liked[l.id]; delete state.matches[l.id]; state.swipes[l.id] = { a: "pass", t: Date.now(), c: l.category };
+      store.set("liked", state.liked); store.set("matches", state.matches); store.set("swipes", state.swipes); enqueue({ action: "unlike", listing: slim(l) });
       updateLikesCount(); el.remove();
     };
     list.appendChild(el);
@@ -397,8 +433,8 @@ function openLikes() {
   $("#dlg-likes").showModal();
 }
 function exportCsv() {
-  const cols = ["superlike", "id", "category", "property_type", "address", "zip_code", "city", "municipality", "price", "monthly_cost", "deposit", "size_m2", "lot_m2", "rooms", "floor", "bathrooms", "year_built", "energy_label", "available_from", "listed_date", "first_seen", "url", "title"];
-  const rows = [cols.join(";")].concat(Object.values(state.liked).map((l) => cols.map((c) => `"${String(c === "superlike" ? (l.superlike ? "yes" : "no") : (l[c] ?? "")).replace(/"/g, '""')}"`).join(";")));
+  const cols = ["match", "superlike", "id", "category", "property_type", "address", "zip_code", "city", "municipality", "price", "monthly_cost", "deposit", "size_m2", "lot_m2", "rooms", "floor", "bathrooms", "year_built", "energy_label", "available_from", "listed_date", "first_seen", "url", "title"];
+  const rows = [cols.join(";")].concat(Object.values(state.liked).map((l) => cols.map((c) => `"${String(c === "superlike" ? (l.superlike ? "yes" : "no") : c === "match" ? (state.matches[l.id] ? "yes" : "no") : (l[c] ?? "")).replace(/"/g, '""')}"`).join(";")));
   const blob = new Blob(["﻿" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "housing-likes.csv"; a.click();
 }
@@ -412,6 +448,7 @@ function saveSettings() {
   for (const el of form.elements) if (el.name) state.settings[el.name] = el.value.trim();
   if (!state.settings.dataUrl) state.settings.dataUrl = "./data";
   state.settings.dataUrl = state.settings.dataUrl.replace(/\/$/, "");
+  if (state.settings.partner && !state.settings.endpoint) toast("Partner matching needs a sheet endpoint", 4000);
   store.set("settings", state.settings);
 }
 
@@ -444,6 +481,7 @@ function bind() {
   $("#btn-reset-filters").onclick = () => { store.del("filters." + state.cat); $("#dlg-filters").close(); applyFilters(); };
   $("#btn-geoloc").onclick = () => navigator.geolocation?.getCurrentPosition((p) => { $("[name=center_lat]").value = p.coords.latitude.toFixed(5); $("[name=center_lon]").value = p.coords.longitude.toFixed(5); }, () => toast("Location unavailable"));
   $("#btn-export").onclick = exportCsv;
+  $("#btn-match-close").onclick = () => $("#dlg-match").close();
   $("#btn-sync").onclick = async () => { saveSettings(); await pullRemote(); await flushOutbox(); rebuildQueue(); toast("Synced"); };
   $("#btn-reload").onclick = () => { saveSettings(); reloadAll(); };
   $("#btn-reset-swipes").onclick = () => { if (confirm("Forget all swipes stored on this device? (The sheet is not changed.)")) { state.swipes = {}; state.liked = {}; store.set("swipes", {}); store.set("liked", {}); updateLikesCount(); rebuildQueue(); $("#dlg-settings").close(); } };

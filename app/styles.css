@@ -103,3 +103,13 @@ input[type=text], input[type=number], input[type=url], input[type=search], selec
 .like-item button { padding: 0 12px; color: var(--muted); }
 .toast { position: fixed; left: 50%; bottom: calc(90px + var(--safe-bottom)); transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; font-size: 14px; z-index: 50; }
 @media (min-width: 700px) { main { max-width: 480px; width: 100%; margin: 0 auto; } }
+
+.badge.match { background: #e040fb; color: #fff; }
+dialog.match { border: 0; padding: 0; width: min(92vw, 420px); border-radius: var(--radius); background: var(--panel); color: var(--text); margin: auto; }
+dialog.match::backdrop { background: rgba(0,0,0,.7); }
+.match-body { padding: 24px 18px calc(18px + var(--safe-bottom)); text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+.match-hearts { font-size: 56px; line-height: 1; animation: pop .5s ease; }
+.match-body h1 { margin: 0; font-size: 30px; background: linear-gradient(90deg, var(--accent), #e040fb); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.match-body p { margin: 0; }
+.match-body .likes-list { text-align: left; max-height: 40vh; overflow-y: auto; }
+@keyframes pop { 0% { transform: scale(.3); opacity: 0; } 70% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }

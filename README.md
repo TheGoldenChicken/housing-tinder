@@ -76,12 +76,22 @@ starting.
    Settings live in that browser only, so repeat this on every device you use. Use the same name
    everywhere and your swipes stay in sync across devices through the sheet.
 
-The script creates two tabs: **Likes** (one row per like or super-like with price, size, rooms, year,
+The script creates three tabs: **Likes** (one row per like or super-like with price, size, rooms, year,
 bathrooms, energy label, links to every site it was found on, image, coordinates, a `super` flag…) and **Swipes**
-(every like/pass/unlike, used to sync between devices). Each user enters their own name, so two
-people can share one sheet or use separate ones. Without an endpoint, swipes stay in the browser.
+(every like/pass/unlike, used to sync between devices) and **Matches** (homes both of you liked, see
+below). Each user enters their own name, so two people can share one sheet or use separate ones.
+Without an endpoint, swipes stay in the browser.
 
-### 4. Install on the phone
+### 4. Match with your partner (optional)
+
+Both of you use the **same sheet endpoint** with your own names. In *Settings → Partner*, enter the
+other person's settings name. From then on, whenever you like a home the other has already liked
+(or the other way round), the app shows **"It's a match!"** and the home gets a row in the sheet's
+**Matches** tab with both names, the details, the link and who super-liked it. Matches you weren't
+online for show up the next time the app syncs. Unliking on either side removes the match again.
+In the likes view, matches sort to the top with a MATCH badge.
+
+### 5. Install on the phone
 
 Open the Pages URL in Safari/Chrome → *Share* → **Add to Home Screen**. It runs full-screen and
 caches the app shell offline; listing data is always fetched fresh.

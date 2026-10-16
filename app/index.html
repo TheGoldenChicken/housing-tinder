@@ -149,6 +149,11 @@
         <input type="url" name="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/… (optional link)">
       </fieldset>
       <fieldset>
+        <legend>Partner</legend>
+        <input type="text" name="partner" placeholder="their settings name (same sheet)">
+        <small>When you both like the same home it's a match: you get told in the app and it lands in the sheet's "Matches" tab.</small>
+      </fieldset>
+      <fieldset>
         <legend>Data</legend>
         <input type="text" name="dataUrl" placeholder="./data">
         <small id="data-info"></small>
@@ -161,6 +166,16 @@
       </fieldset>
     </div>
   </form>
+</dialog>
+
+<dialog id="dlg-match" class="match">
+  <div class="match-body">
+    <div class="match-hearts">💞</div>
+    <h1>It's a match!</h1>
+    <p id="match-text" class="muted"></p>
+    <div id="match-list" class="likes-list"></div>
+    <button class="primary" id="btn-match-close">Keep swiping</button>
+  </div>
 </dialog>
 
 <div id="toast" class="toast hidden"></div>
