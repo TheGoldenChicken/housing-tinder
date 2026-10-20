@@ -128,7 +128,12 @@
   <header><h2>Likes</h2><button class="primary" id="btn-likes-close">Close</button></header>
   <div class="body">
     <p class="muted" id="likes-sheet-link"></p>
-    <div class="row"><button type="button" class="small" id="btn-export">Export CSV</button></div>
+    <div class="row">
+      <button type="button" class="small" id="btn-share">Share likes…</button>
+      <button type="button" class="small hidden" id="btn-share-matches">Share matches…</button>
+      <button type="button" class="small" id="btn-export">Download CSV</button>
+    </div>
+    <small>Share opens the phone's share sheet (email, messages, Drive…) with a CSV attached; on desktop it downloads.</small>
     <div id="likes-list" class="likes-list"></div>
   </div>
 </dialog>

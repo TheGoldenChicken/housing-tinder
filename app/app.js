@@ -416,6 +416,7 @@ function openLikes() {
   const isMatch = (l) => (state.matches[l.id] ? 1 : 0);
   const items = Object.values(state.liked).sort((a, b) => isMatch(b) - isMatch(a) || (b.superlike ? 1 : 0) - (a.superlike ? 1 : 0) || (state.swipes[b.id]?.t || 0) - (state.swipes[a.id]?.t || 0));
   $("#likes-sheet-link").innerHTML = state.settings.sheetUrl ? `Full details for review: <a href="${esc(state.settings.sheetUrl)}" target="_blank" rel="noopener">open the Google Sheet ↗</a>` : (state.settings.endpoint ? "Likes are also stored in your Google Sheet." : "Likes are stored on this device only (set a sheet endpoint in settings to sync).");
+  $("#btn-share-matches").classList.toggle("hidden", !items.some((l) => state.matches[l.id]));
   if (!items.length) list.innerHTML = '<p class="muted">No likes yet.</p>';
   items.forEach((l) => {
     const el = document.createElement("div"); el.className = "like-item";
@@ -432,11 +433,46 @@ function openLikes() {
   });
   $("#dlg-likes").showModal();
 }
-function exportCsv() {
-  const cols = ["match", "superlike", "id", "category", "property_type", "address", "zip_code", "city", "municipality", "price", "monthly_cost", "deposit", "size_m2", "lot_m2", "rooms", "floor", "bathrooms", "year_built", "energy_label", "available_from", "listed_date", "first_seen", "url", "title"];
-  const rows = [cols.join(";")].concat(Object.values(state.liked).map((l) => cols.map((c) => `"${String(c === "superlike" ? (l.superlike ? "yes" : "no") : c === "match" ? (state.matches[l.id] ? "yes" : "no") : (l[c] ?? "")).replace(/"/g, '""')}"`).join(";")));
-  const blob = new Blob(["﻿" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "housing-likes.csv"; a.click();
+const CSV_COLS = ["match", "superlike", "liked_at", "id", "category", "property_type", "address", "zip_code", "city", "municipality", "price", "monthly_cost", "deposit", "size_m2", "lot_m2", "rooms", "floor", "bathrooms", "year_built", "energy_label", "available_from", "listed_date", "first_seen", "url", "other_urls", "title", "realtor", "image"];
+function csvValue(l, c) {
+  switch (c) {
+    case "match": return state.matches[l.id] ? "yes" : "no";
+    case "superlike": return l.superlike ? "yes" : "no";
+    case "liked_at": return state.swipes[l.id]?.t ? new Date(state.swipes[l.id].t).toISOString().slice(0, 16).replace("T", " ") : "";
+    case "other_urls": return Object.values(l.extra?.urls || {}).join(" ");
+    case "image": return l.images?.[0] || "";
+    default: return l[c] ?? "";
+  }
+}
+function buildCsv(items) {
+  const rows = [CSV_COLS.join(";")].concat(items.map((l) => CSV_COLS.map((c) => `"${String(csvValue(l, c)).replace(/"/g, '""')}"`).join(";")));
+  return "\ufeff" + rows.join("\r\n");  // BOM + semicolons so Excel/Sheets in Danish locale open it directly
+}
+function likedItems(kind) {
+  const all = Object.values(state.liked);
+  return kind === "matches" ? all.filter((l) => state.matches[l.id]) : all;
+}
+function csvFile(kind) {
+  const day = new Date().toISOString().slice(0, 10);
+  const name = `housing-${kind}-${state.settings.user || "me"}-${day}.csv`;
+  return new File([buildCsv(likedItems(kind))], name, { type: "text/csv" });
+}
+function downloadCsv(kind) {
+  const file = csvFile(kind);
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+async function shareCsv(kind) {
+  const items = likedItems(kind);
+  if (!items.length) { toast(kind === "matches" ? "No matches yet" : "No likes yet"); return; }
+  const file = csvFile(kind);
+  const title = kind === "matches" ? "Housing matches" : "Housing likes";
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title, text: `${items.length} ${kind} from Housing Tinder` }); return; }
+    catch (e) { if (e.name === "AbortError") return; console.warn("share failed", e); }
+  }
+  downloadCsv(kind);  // desktop browsers and anything without file sharing
+  toast("Saved CSV to downloads");
 }
 function openSettings() {
   const form = $("#form-settings");
@@ -480,7 +516,9 @@ function bind() {
   $("#muni-clear").onclick = () => { $$("#muni-list input").forEach((i) => (i.checked = false)); updateMuniCount(); };
   $("#btn-reset-filters").onclick = () => { store.del("filters." + state.cat); $("#dlg-filters").close(); applyFilters(); };
   $("#btn-geoloc").onclick = () => navigator.geolocation?.getCurrentPosition((p) => { $("[name=center_lat]").value = p.coords.latitude.toFixed(5); $("[name=center_lon]").value = p.coords.longitude.toFixed(5); }, () => toast("Location unavailable"));
-  $("#btn-export").onclick = exportCsv;
+  $("#btn-share").onclick = () => shareCsv("likes");
+  $("#btn-share-matches").onclick = () => shareCsv("matches");
+  $("#btn-export").onclick = () => downloadCsv("likes");
   $("#btn-match-close").onclick = () => $("#dlg-match").close();
   $("#btn-sync").onclick = async () => { saveSettings(); await pullRemote(); await flushOutbox(); rebuildQueue(); toast("Synced"); };
   $("#btn-reload").onclick = () => { saveSettings(); reloadAll(); };

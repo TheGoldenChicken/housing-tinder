@@ -109,7 +109,10 @@ caches the app shell offline; listing data is always fetched fresh.
   ↑ super-like, Backspace undo.
 - **Super-likes** are likes you want to act on first: they sort to the top of the likes view with a
   ★ badge, get `super = TRUE` in the sheet's Likes tab, and a `superlike` column in the CSV export.
-- **♥ Likes**: review liked listings, remove likes, export CSV, open the sheet.
+- **♥ Likes**: review liked listings, remove likes, open the sheet, and **share or download a CSV**.
+  *Share likes…* / *Share matches…* open the phone's share sheet with a CSV attached (email it to
+  yourself, drop it in Drive, send it to your partner); on a desktop browser they download instead.
+  The CSV uses semicolons and a BOM so Excel and Google Sheets open it correctly in a Danish locale.
 - Listings first seen in the last three days carry a **NEW** badge.
 
 ## Running the scraper locally
